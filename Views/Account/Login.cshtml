@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container d-flex align-items-center justify-content-center vh-100" style="background-color: #f9f9f9;">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px; border-radius: 15px;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold" style="color: #007bff;">Welcome Back!</h3>
+            <p class="text-muted">Login to access your account</p>
+        </div>
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Message</div>
+        }
+        <form asp-action="Login" method="post">
+            <div class="mb-3">
+                <label for="email" class="form-label fw-semibold">Email</label>
+                <input type="email" class="form-control shadow-sm" id="email" name="email" placeholder="Enter your email" required />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label fw-semibold">Password</label>
+                <input type="password" class="form-control shadow-sm" id="password" name="password" placeholder="Enter your password" required />
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-block py-2 shadow-sm">Login</button>
+            </div>
+        </form>
+        <div class="text-center mt-3">
+            <a asp-action="ForgotPassword" class="text-decoration-none" style="color: #007bff;">Forgot Password?</a>
+        </div>
+        <hr class="my-4" />
+        <div class="text-center">
+            <p class="mb-0">Don't have an account? <a asp-action="Register" class="fw-bold text-decoration-none" style="color: #007bff;">Sign Up</a></p>
+        </div>
+    </div>
+</div>
