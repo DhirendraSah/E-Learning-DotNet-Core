@@ -1,0 +1,201 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Educator Dashboard</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+    <style>
+        /* General Styling */
+        body {
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            padding-top: 60px;
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background: rgba(0, 123, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+            .navbar-custom .navbar-brand,
+            .navbar-custom .nav-link {
+                color: #fff !important;
+                font-weight: bold;
+            }
+
+                .navbar-custom .nav-link:hover {
+                    color: #f8f9fa !important;
+                }
+
+        /* Sidebar */
+        .sidebar {
+            height: 100vh;
+            width: 260px;
+            position: fixed;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            padding-top: 20px;
+            transition: all 0.3s ease-in-out;
+        }
+
+            .sidebar .nav-link {
+                color: #333;
+                font-size: 16px;
+                font-weight: 600;
+                padding: 12px 20px;
+                border-radius: 8px;
+                transition: all 0.3s ease-in-out;
+            }
+
+                .sidebar .nav-link:hover,
+                .sidebar .nav-link.active {
+                    background-color: #007bff;
+                    color: #fff !important;
+                }
+
+                .sidebar .nav-link i {
+                    margin-right: 12px;
+                    font-size: 18px;
+                }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        /* Footer */
+        .footer-custom {
+            background: #343a40;
+            color: #ffffff;
+            padding: 30px 0;
+            text-align: center;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+            .footer-custom a {
+                color: #ffffff;
+                font-weight: bold;
+            }
+
+                .footer-custom a:hover {
+                    color: #007bff;
+                    text-decoration: underline;
+                }
+
+        .social-icons a {
+            font-size: 22px;
+            margin: 0 10px;
+            color: #ffffff;
+            transition: transform 0.3s;
+        }
+
+            .social-icons a:hover {
+                transform: scale(1.2);
+                color: #007bff;
+            }
+
+        
+
+        
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Educator</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <span class="nav-link"><i class="fas fa-user-circle"></i> @(HttpContextAccessor.HttpContext.Session.GetString("UserEmail") ?? "Guest")</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Login">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="sidebar d-none d-md-block">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Educator" asp-action="Homepage"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Educator" asp-action="AddCourses"><i class="fas fa-plus-circle"></i> Add Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Educator" asp-action="MyCourses"><i class="fas fa-book"></i> My Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Educator" asp-action="StudentEnrolled"><i class="fas fa-users"></i> Student Enrolled</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Follow Us</h5>
+                    <div class="social-icons">
+                        <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="mailto:support@elearning.com"><i class="fa-solid fa-envelope"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                        <li><a asp-controller="Home" asp-action="Subscribe">Subscribe</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Subscribe</h5>
+                    <form asp-action="Subscribe" method="post">
+                        <div class="input-group">
+                            <input type="email" name="email" class="form-control" placeholder="Your email" required />
+                            <button type="submit" class="btn btn-primary">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <hr />
+            <p>&copy; 2025 - E_Learning - All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @RenderSection("Scripts", required: false)
+
+</body>
+</html>

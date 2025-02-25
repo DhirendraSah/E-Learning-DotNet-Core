@@ -1,0 +1,164 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Student Dashboard</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        /* Navbar Styles */
+        .navbar-custom {
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+            .navbar-custom .navbar-brand {
+                font-weight: bold;
+                font-size: 1.5rem;
+                color: #fff !important;
+            }
+
+            .navbar-custom .nav-link {
+                color: #fff !important;
+                font-weight: 500;
+                transition: 0.3s ease-in-out;
+                padding: 10px 15px;
+                border-radius: 5px;
+            }
+
+                .navbar-custom .nav-link:hover {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    text-decoration: none;
+                }
+
+        /* Footer Styles */
+        .footer-custom {
+            background: #111;
+            color: #fff;
+            padding: 40px 0;
+        }
+
+            .footer-custom a {
+                color: #dcdcdc;
+                transition: 0.3s;
+            }
+
+                .footer-custom a:hover {
+                    color: #007bff;
+                    transform: scale(1.1);
+                }
+
+            .footer-custom .social-icons a {
+                font-size: 22px;
+                margin: 0 10px;
+                color: #dcdcdc;
+                transition: transform 0.3s ease-in-out;
+            }
+
+                .footer-custom .social-icons a:hover {
+                    color: #007bff;
+                    transform: translateY(-3px);
+                }
+
+        /* Body Content */
+        body {
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+
+        /* Subscription Form */
+        .footer-custom input {
+            border-radius: 20px;
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+        }
+
+        .footer-custom button {
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand"  asp-controller="Student" asp-action="StudentHomePage">STUDENT</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <!-- Left side -->
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Student" asp-action="MyEnrollments">My Enrollment</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Student" asp-action="MyProgress">Progress</a>
+                        </li>
+                    </ul>
+                    <!-- Right side -->
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item d-flex align-items-center me-3">
+                            <span class="nav-link" style="color: white;">
+                                <strong>@(HttpContextAccessor.HttpContext.Session.GetString("UserEmail") ?? "Guest")</strong>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Login">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        @RenderBody()
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 text-center text-md-start">
+                    <h5>Follow Us</h5>
+                    <div class="social-icons">
+                        <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="mailto:support@elearning.com"><i class="fa-solid fa-envelope"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Subscribe">Subscribe</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center text-md-end">
+                    <h5>Subscribe</h5>
+                    <form asp-action="Subscribe" method="post" class="d-flex justify-content-center justify-content-md-end">
+                        <input type="email" name="email" placeholder="Your email" class="form-control me-2" required />
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <hr />
+            <div class="text-center mt-3">
+                <p>&copy; 2025 - E_Learning - All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

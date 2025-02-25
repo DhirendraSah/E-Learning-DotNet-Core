@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container-fluid mt-5" style="background: linear-gradient(to bottom, rgba(135, 206, 250, 0.4), white);">
+    <!-- Header Section -->
+    <div class="text-center py-5">
+        <h1 class="display-4">Empower your future with the courses designed to <span class="text-primary">fit your choice.</span></h1>
+        <p class="lead">We bring together world-class instructors, interactive content, and cutting-edge technology to help you achieve your personal and professional goals.</p>
+        <div class="mt-4">
+            <input type="text" class="form-control d-inline-block w-50" placeholder="Search for courses" />
+            <button class="btn btn-primary ml-2">Search</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Trusted By Section -->
+    <div class="text-center my-5">
+        <h6 class="text-uppercase text-muted">Trusted by learners from</h6>
+        <div class="d-flex justify-content-center align-items-center mt-3">
+            <img src="~/images/microsoft_logo.svg" alt="Microsoft" class="mx-3" style="max-height: 50px;" />
+            <img src="~/images/walmart_logo.svg" alt="Walmart" class="mx-3" style="max-height: 50px;" />
+            <img src="~/images/accenture_logo.svg" alt="Accenture" class="mx-3" style="max-height: 50px;" />
+            <img src="~/images/adobe_logo.svg" alt="Adobe" class="mx-3" style="max-height: 50px;" />
+            <img src="~/images/paypal_logo.svg" alt="PayPal" class="mx-3" style="max-height: 50px;" />
+        </div>
+    </div>
+
+    
+        <!-- Updated Courses Section -->
+        <div class="text-center my-5">
+            <h2>Learn from the best</h2>
+            <p>Discover our top-rated courses in technology, business, marketing, and design to achieve your learning goals.</p>
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card shadow-lg position-relative">
+                        <img src="~/images/course_1.png" class="card-img-top" alt="Course 1" />
+                        <div class="badge bg-success text-white position-absolute top-0 start-0 m-2">Beginner</div>
+                        <div class="card-body">
+                            <h5 class="card-title">Build Websites</h5>
+                            <p class="card-text text-muted">4.5 ★ | 20,000+ students</p>
+                            <p class="text-primary h5">$25.99</p>
+                            <button class="btn btn-outline-primary btn-sm">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-lg position-relative">
+                        <img src="~/images/course_2.png" class="card-img-top" alt="Course 2" />
+                        <div class="badge bg-warning text-white position-absolute top-0 start-0 m-2">Intermediate</div>
+                        <div class="card-body">
+                            <h5 class="card-title">Python for Data Science</h5>
+                            <p class="card-text text-muted">4.7 ★ | 50,000+ students</p>
+                            <p class="text-primary h5">$19.99</p>
+                            <button class="btn btn-outline-primary btn-sm">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-lg position-relative">
+                        <img src="~/images/course_3.png" class="card-img-top" alt="Course 3" />
+                        <div class="badge bg-danger text-white position-absolute top-0 start-0 m-2">Advanced</div>
+                        <div class="card-body">
+                            <h5 class="card-title">React Mastery</h5>
+                            <p class="card-text text-muted">4.8 ★ | 30,000+ students</p>
+                            <p class="text-primary h5">$29.99</p>
+                            <button class="btn btn-outline-primary btn-sm">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-lg position-relative">
+                        <img src="~/images/course_4.png" class="card-img-top" alt="Course 4" />
+                        <div class="badge bg-primary text-white position-absolute top-0 start-0 m-2">All Levels</div>
+                        <div class="card-body">
+                            <h5 class="card-title">UI/UX Design Essentials</h5>
+                            <p class="card-text text-muted">4.6 ★ | 15,000+ students</p>
+                            <p class="text-primary h5">$24.99</p>
+                            <button class="btn btn-outline-primary btn-sm">Enroll Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary mt-4">Show More Courses</button>
+        </div>
+
+    <!-- Updated Testimonials Section -->
+    <div class="text-center my-5">
+        <h2>Testimonials</h2>
+        <p>Hear from our learners on how they have achieved transformations and success with our platform.</p>
+        <div id="testimonialCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="d-flex flex-column align-items-center">
+                        <img src="~/images/profile_img_1.png" alt="User 1" class="rounded-circle mb-3" style="width: 80px; height: 80px;">
+                        <blockquote class="blockquote text-center">
+                            <p class="mb-3">"This platform changed my life! The courses are well-designed, and the instructors are amazing."</p>
+                            <footer class="blockquote-footer text-muted">Dhirendra Sah</footer>
+                        </blockquote>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="d-flex flex-column align-items-center">
+                        <img src="~/images/profile_img_2.png" alt="User 2" class="rounded-circle mb-3" style="width: 80px; height: 80px;">
+                        <blockquote class="blockquote text-center">
+                            <p class="mb-3">"The practical approach in every course helped me land my dream job in tech."</p>
+                            <footer class="blockquote-footer text-muted">Santosh Mahato</footer>
+                        </blockquote>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="d-flex flex-column align-items-center">
+                        <img src="~/images/profile_img_3.png" alt="User 3" class="rounded-circle mb-3" style="width: 80px; height: 80px;">
+                        <blockquote class="blockquote text-center">
+                            <p class="mb-3">"A fantastic resource for anyone looking to upskill and advance their career."</p>
+                            <footer class="blockquote-footer text-muted">Pradeep Maurya</footer>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Call to Action Section -->
+    <div class="text-center my-5">
+        <h2>Learn anything, anytime, anywhere</h2>
+        <p>Join today and start exploring our extensive catalog of courses and learning resources.</p>
+        <button class="btn btn-primary">Get Started</button>
+        <button class="btn btn-outline-primary ml-3">Learn More</button>
+    </div>
+</div>
