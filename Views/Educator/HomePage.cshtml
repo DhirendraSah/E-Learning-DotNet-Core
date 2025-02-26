@@ -1,0 +1,85 @@
+﻿@model IEnumerable<EnrollmentViewModel>
+
+@{
+    Layout = "~/Views/Shared/_EducatorLayout.cshtml";
+}
+
+<style>
+    /* Dashboard Cards */
+    .card {
+        border: none;
+        border-radius: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+    /* Table Styling */
+    table {
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+        table thead {
+            background: #007bff;
+            color: #fff;
+        }
+
+        table tbody tr:hover {
+            background: #f1f1f1;
+            transition: background 0.3s ease;
+        }
+</style>
+
+<div class="container my-4">
+    <h1 class="mt-4">Welcome, Educator! 🎓</h1>
+    <p class="text-muted">Manage your courses and profile efficiently.</p>
+
+    <!-- Dashboard Cards -->
+    <div class="row my-4">
+        <div class="col-md-4">
+            <div class="card text-center shadow p-3">
+                <div class="card-body">
+                    <h4>14</h4>
+                    <p class="text-muted">Total Enrollments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow p-3">
+                <div class="card-body">
+                    <h4>8</h4>
+                    <p class="text-muted">Total Courses</p>
+                </div>
+            </div>
+        </div>
+  
+    </div>
+
+    <!-- Recent Enrollments -->
+    <h3 class="mt-4">Latest Enrollments</h3>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Course Title</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var enrollment in Model)
+                {
+                    <tr>
+                        <td>@enrollment.StudentEmail</td>
+                        <td>@enrollment.CourseTitle</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
