@@ -1,0 +1,211 @@
+﻿@{
+    Layout = "~/Views/Shared/_EducatorLayout.cshtml";
+}
+
+<h2 class="text-center text-primary my-4 fw-bold">📚 My Courses</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success text-center">@TempData["Success"]</div>
+}
+
+<div class="container">
+    <div class="glass-card p-4 shadow-lg rounded">
+        <table class="table table-hover custom-table">
+            <thead>
+                <tr>
+                    <th>📸 Thumbnail</th>
+                    <th>📌 Title</th>
+                    <th>🎓 Lectures</th>
+                    <th>💰 Price</th>
+                    <th>⚙️ Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in Model)
+                {
+                    <tr id="courseRow_@course.CourseId">
+                        <td>
+                            <img src="@course.ThumbnailPath" alt="Thumbnail" class="thumbnail">
+                        </td>
+                        <td class="fw-bold">@course.Title</td>
+                        <td id="lectureCount_@course.CourseId">@course.Lectures.Count</td>
+                        <td>@(course.IsFree ? "Free" : "$" + course.Price)</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openLectureModal(@course.CourseId)">
+                                ➕ Add Lecture
+                            </button>
+                            <form method="post" asp-action="DeleteCourse" asp-route-id="@course.CourseId" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this course?');">
+                                    ❌ Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Lecture Modal -->
+<div class="modal fade" id="addLectureModal" tabindex="-1" aria-labelledby="lectureModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-primary" id="lectureModalLabel">🎬 Add Lecture</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addLectureForm" enctype="multipart/form-data">
+                    <input type="hidden" id="courseId" name="CourseId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">📌 Lecture Title</label>
+                        <input type="text" class="form-control" id="lectureTitle" name="LectureTitle" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">📂 Upload Lecture Video</label>
+                        <input type="file" class="form-control" id="lectureVideo" name="lectureVideo" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold animate-btn">
+                        ✅ Save Lecture
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Glassmorphism Effect */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+        .custom-table thead tr {
+            background: rgba(0, 123, 255, 0.2);
+            color: #007bff;
+        }
+
+        .custom-table tbody tr {
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease-in-out;
+        }
+
+            .custom-table tbody tr:hover {
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+    .thumbnail {
+        width: 70px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn {
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-weight: bold;
+    }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+    .animate-btn {
+        background: linear-gradient(90deg, #28a745, #218838);
+        color: white;
+        border: none;
+    }
+
+        .animate-btn:hover {
+            background: linear-gradient(90deg, #218838, #28a745);
+        }
+</style>
+
+@section Scripts {
+    <script>
+        function openLectureModal(courseId) {
+            console.log("Opening modal for course:", courseId);
+            $('#courseId').val(courseId);
+            $('#addLectureModal').modal('show');
+        }
+
+        $(document).ready(function () {
+            $('#addLectureForm').submit(function (event) {
+                event.preventDefault();
+
+                var fileInput = $('#lectureVideo')[0].files[0];
+                if (!fileInput) {
+                    alert("Please select a video file.");
+                    return;
+                }
+
+                var allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+                if (!allowedTypes.includes(fileInput.type)) {
+                    alert("Invalid file type! Please upload a video (MP4, WebM, OGG).");
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('CourseId', $('#courseId').val());
+                formData.append('LectureTitle', $('#lectureTitle').val());
+                formData.append('lectureVideo', fileInput);
+
+                $.ajax({
+                    url: '@Url.Action("AddLecture", "Educator")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function () {
+                        $('#addLectureForm button').prop('disabled', true).text('Uploading...');
+                    },
+                    success: function (response) {
+                        console.log("Server Response:", response);
+                        if (response.success) {
+                            let courseId = $('#courseId').val();
+                            let newCount = response.lectureCount;
+
+                            // Update lecture count in UI
+                            $('#lectureCount_' + courseId).text(newCount);
+
+                            alert("Lecture added successfully!");
+
+                            // Close modal and reset form
+                            $('#addLectureModal').modal('hide');
+                            $('#addLectureForm')[0].reset();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error:", error);
+                        alert("Error adding lecture.");
+                    },
+                    complete: function () {
+                        $('#addLectureForm button').prop('disabled', false).text('Save Lecture');
+                    }
+                });
+            });
+        });
+    </script>
+}
