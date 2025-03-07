@@ -1,0 +1,214 @@
+﻿@model List<E_Learning.Models.Course>
+
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "All Courses";
+}
+
+<div class="container">
+    
+
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mt-4">Explore All Courses</h2>
+        <button id="openChatbotBtn" class="btn btn-outline-info">💬 Chat with AI</button>
+    </div>
+
+
+    @if (!string.IsNullOrEmpty(ViewBag.UserEmail))
+    {
+        <p class="text-muted">Logged in as: @ViewBag.UserEmail</p>
+    }
+
+    <!-- Search Form -->
+    <form method="get" asp-action="StudentHomePage" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="searchQuery" class="form-control" placeholder="Search courses..."
+                   value="@ViewBag.SearchQuery">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    <div class="row">
+        @if (Model.Any())
+        {
+            @foreach (var course in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="@course.ThumbnailPath" class="card-img-top" alt="Course Thumbnail">
+                        <div class="card-body">
+                            <h5 class="card-title">@course.Title</h5>
+                            <p class="text-primary">
+                                @if (course.IsFree)
+                                {
+                                    <span>Free</span>
+                                }
+                                else
+                                {
+                                    <span>$@course.Price</span>
+                                }
+                            </p>
+                            <a href="@Url.Action("ViewCourse", "Student", new { id = course.CourseId })"
+                               class="btn btn-outline-primary w-100">View Course</a>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-center text-muted">No courses found.</p>
+        }
+    </div>
+</div>
+<!-- Chatbot Popup -->
+<div id="chatbotPopup" class="chatbot-popup">
+    <div class="chatbot-header">
+        <span>Chat with AI Assistant</span>
+        <button onclick="toggleChatbot()">×</button>
+    </div>
+    <div id="chatbotMessages" class="chatbot-messages"></div>
+    <div class="chatbot-input">
+        <input type="text" id="chatbotMessageInput" placeholder="Ask me anything...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<!-- Styles for Chatbot -->
+<style>
+    .chatbot-popup {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 300px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        display: none;
+        z-index: 1000;
+        flex-direction: column;
+    }
+
+    .chatbot-header {
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        align-items: center;
+    }
+
+    .chatbot-messages {
+        height: 200px;
+        overflow-y: auto;
+        padding: 10px;
+        background: #f8f9fa;
+    }
+
+    .chatbot-input {
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+
+        .chatbot-input input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+        }
+
+        .chatbot-input button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+    .user-message {
+        text-align: right;
+        background: #007bff;
+        color: white;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 10px;
+        max-width: 80%;
+        align-self: flex-end;
+    }
+
+    .bot-message {
+        text-align: left;
+        background: #f1f1f1;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 10px;
+        max-width: 80%;
+        align-self: flex-start;
+    }
+</style>
+<script>
+    document.getElementById('openChatbotBtn').addEventListener('click', toggleChatbot);
+
+    function toggleChatbot() {
+        const chatbot = document.getElementById('chatbotPopup');
+        chatbot.style.display = (chatbot.style.display === 'none' || chatbot.style.display === '') ? 'flex' : 'none';
+    }
+
+    function addMessage(sender, text) {
+        const messagesDiv = document.getElementById('chatbotMessages');
+        const messageElem = document.createElement('div');
+        messageElem.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+        messageElem.innerText = text;
+        messagesDiv.appendChild(messageElem);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chatbotMessageInput');
+        const message = input.value.trim();
+        if (!message) return;
+
+        addMessage('user', message);
+        input.value = '';
+
+        const response = await fetch('/api/chatbot/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+        addMessage('bot', data.response);
+    }
+
+    document.getElementById('chatbotMessageInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+
+
+<style>
+    .card {
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card-img-top {
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .input-group {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+</style>
