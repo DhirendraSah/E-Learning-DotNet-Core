@@ -1,0 +1,29 @@
+﻿@model E_Learning.Models.Quiz
+
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "Take Quiz";
+}
+
+<h2>@Model.Title - Take Quiz</h2>
+
+<form method="post" action="@Url.Action("SubmitQuiz", "Student")">
+    <input type="hidden" name="QuizId" value="@Model.QuizId" />
+
+    @for (int i = 0; i < Model.Questions.Count; i++)
+    {
+        var question = Model.Questions[i];
+
+        <div class="mb-4">
+            <p><strong>Q@(i + 1): @question.QuestionText</strong></p>
+            <div>
+                <label><input type="radio" name="Answers[@i]" value="A" required /> @question.OptionA</label><br />
+                <label><input type="radio" name="Answers[@i]" value="B" required /> @question.OptionB</label><br />
+                <label><input type="radio" name="Answers[@i]" value="C" required /> @question.OptionC</label><br />
+                <label><input type="radio" name="Answers[@i]" value="D" required /> @question.OptionD</label><br />
+            </div>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-success">Submit Quiz</button>
+</form>
