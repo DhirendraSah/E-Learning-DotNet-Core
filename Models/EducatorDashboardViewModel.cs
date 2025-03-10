@@ -7,7 +7,6 @@ namespace E_Learning.Models
 		[Key]
 		public int TotalEnrollments { get; set; }
 		public int TotalCourses { get; set; }
-		public decimal TotalEarnings { get; set; }
 		public List<Enrollment> RecentEnrollments { get; set; }
 	}
 }
