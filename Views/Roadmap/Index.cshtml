@@ -1,0 +1,44 @@
+﻿
+
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "Roadmap";
+}
+<h1>Search and Open Roadmap</h1>
+
+<div>
+    <input type="text"
+           id="searchInput"
+           placeholder="Enter roadmap name (e.g., frontend, backend)"
+           style="width: 80%; padding: 10px; margin-bottom: 10px; font-size: 16px;" />
+    <button onclick="openRoadmap()"
+            style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">
+        Open Roadmap
+    </button>
+</div>
+
+<script>
+    function openRoadmap() {
+        const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
+        const validRoadmaps = [
+            'frontend',
+            'backend',
+            'devops',
+            'android',
+            'blockchain',
+            'qa',
+            'cyber-security',
+            'data-engineering',
+            'game-dev',
+            'ai',
+            'flutter',
+            'react'
+        ];
+
+        if (validRoadmaps.includes(searchInput)) {
+            window.open(`https://roadmap.sh/${searchInput}`, '_blank'); // ✅ Open in new tab
+        } else {
+            alert('No valid roadmap found! Try "frontend", "backend", "devops", etc.');
+        }
+    }
+</script>
