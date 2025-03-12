@@ -1,0 +1,38 @@
+﻿@model IEnumerable<E_Learning.Models.CourseFeedback>
+
+@{
+    Layout = "~/Views/Shared/_EducatorLayout.cshtml";
+}
+
+<h2 class="my-3">All Course Feedback</h2>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Course ID</th>
+                <th>Student Email</th>
+                <th>Feedback</th>
+                <th>Submitted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var feedback in Model)
+            {
+                <tr>
+                    <td>@feedback.CourseId</td>
+                    <td>@feedback.StudentEmail</td>
+                    <td>@feedback.FeedbackText</td>
+                    <td>@feedback.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">
+        No feedback available yet.
+    </div>
+}

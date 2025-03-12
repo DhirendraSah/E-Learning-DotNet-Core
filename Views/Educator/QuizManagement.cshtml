@@ -1,0 +1,35 @@
+﻿@model IEnumerable<E_Learning.Models.Quiz>
+
+@{
+    Layout = "~/Views/Shared/_EducatorLayout.cshtml";
+}
+
+<h2>Manage Quizzes</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Subject</th>
+            <th>Level</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var quiz in Model)
+        {
+            <tr>
+                <td>@quiz.Title</td>
+                <td>@quiz.Subject</td>
+                <td>@quiz.Level</td>
+                <td>
+                    <a asp-action="EditQuiz" asp-route-id="@quiz.QuizId" class="btn btn-warning">Edit</a>
+                    <a asp-action="DeleteQuiz" asp-route-id="@quiz.QuizId" class="btn btn-danger"
+                       onclick="return confirm('Are you sure you want to delete this quiz?');">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="AddQuiz" class="btn btn-success">Add New Quiz</a>
