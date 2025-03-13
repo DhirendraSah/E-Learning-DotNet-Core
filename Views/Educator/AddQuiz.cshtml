@@ -1,0 +1,99 @@
+﻿@model E_Learning.Models.Quiz
+@{
+    Layout = "~/Views/Shared/_EducatorLayout.cshtml";
+}
+
+<h2>Create New Quiz</h2>
+
+<!-- Add this button to go to quiz management page -->
+<div style="margin-bottom: 10px;">
+    <a href="@Url.Action("QuizManagement", "Educator")" class="btn btn-info">Manage Quizzes</a>
+</div>
+
+<form asp-action="AddQuiz" method="post">
+    <div class="form-group">
+        <label>Title</label>
+        <input asp-for="Title" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Subject</label>
+        <input asp-for="Subject" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Level</label>
+        <select asp-for="Level" class="form-control">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+    </div>
+
+    <h4>Questions</h4>
+    <div id="questionsContainer">
+        <div class="question-item">
+            <label>Question 1</label>
+            <input name="QuestionTexts" class="form-control" />
+
+            <label>Option A</label>
+            <input name="OptionAs" class="form-control" />
+
+            <label>Option B</label>
+            <input name="OptionBs" class="form-control" />
+
+            <label>Option C</label>
+            <input name="OptionCs" class="form-control" />
+
+            <label>Option D</label>
+            <input name="OptionDs" class="form-control" />
+
+            <label>Correct Answer (A/B/C/D)</label>
+            <input name="CorrectAnswers" class="form-control" />
+        </div>
+    </div>
+
+    <button type="button" onclick="addQuestion()">Add Another Question</button>
+    <br><br>
+
+    <button type="submit" class="btn btn-primary">Save Quiz</button>
+</form>
+
+<script>
+    let questionCount = 1;
+
+    function addQuestion() {
+        questionCount++;
+        const container = document.getElementById("questionsContainer");
+        const html = `
+            <div class="question-item">
+                <label>Question ${questionCount}</label>
+                <input name="QuestionTexts" class="form-control" />
+
+                <label>Option A</label>
+                <input name="OptionAs" class="form-control" />
+
+                <label>Option B</label>
+                <input name="OptionBs" class="form-control" />
+
+                <label>Option C</label>
+                <input name="OptionCs" class="form-control" />
+
+                <label>Option D</label>
+                <input name="OptionDs" class="form-control" />
+
+                <label>Correct Answer (A/B/C/D)</label>
+                <input name="CorrectAnswers" class="form-control" />
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+</script>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}

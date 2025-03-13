@@ -1,0 +1,66 @@
+﻿@model E_Learning.Models.Quiz
+@{
+    Layout = "~/Views/Shared/_EducatorLayout.cshtml";
+}
+
+<h2>Edit Quiz - @Model.Title</h2>
+
+<form asp-action="EditQuiz" method="post">
+    <input type="hidden" asp-for="QuizId" />
+
+    <div class="form-group">
+        <label>Title</label>
+        <input asp-for="Title" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Subject</label>
+        <input asp-for="Subject" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Level</label>
+        <select asp-for="Level" class="form-control">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+    </div>
+
+    <h4>Questions</h4>
+    <div id="questionsContainer">
+        @for (int i = 0; i < Model.Questions.Count; i++)
+        {
+            var question = Model.Questions[i];
+            <div class="question-item">
+                <label>Question @(i + 1)</label>
+                <input name="QuestionTexts" class="form-control" value="@question.QuestionText" />
+
+                <label>Option A</label>
+                <input name="OptionAs" class="form-control" value="@question.OptionA" />
+
+                <label>Option B</label>
+                <input name="OptionBs" class="form-control" value="@question.OptionB" />
+
+                <label>Option C</label>
+                <input name="OptionCs" class="form-control" value="@question.OptionC" />
+
+                <label>Option D</label>
+                <input name="OptionDs" class="form-control" value="@question.OptionD" />
+
+                <label>Correct Answer (A/B/C/D)</label>
+                <input name="CorrectAnswers" class="form-control" value="@question.CorrectAnswer" />
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update Quiz</button>
+</form>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
