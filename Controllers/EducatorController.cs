@@ -1,192 +1,374 @@
 ﻿using E_Learning.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Security.Claims;
+using System.Net.Mail;
+using System.Net;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Facebook;
 
 namespace E_Learning.Controllers
 {
-	public class EducatorController : Controller
+	public class AccountController : Controller
 	{
 		private readonly AppDbContext _context;
-		private readonly IWebHostEnvironment _webHostEnvironment;
+		private readonly IConfiguration _configuration;
 
-		public EducatorController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
+		public AccountController(AppDbContext context, IConfiguration configuration)
 		{
 			_context = context;
-			_webHostEnvironment = webHostEnvironment;
+			_configuration = configuration;
 		}
 
-		public async Task<IActionResult> HomePage()
+
+		// GET: Login Page
+		[HttpGet]
+		public IActionResult Login()
 		{
-			var enrollments = await _context.Enrollments
-				.Join(_context.Courses, e => e.CourseId, c => c.CourseId, (e, c) => new EnrollmentViewModel
-				{
-					StudentEmail = e.StudentEmail,
-					CourseTitle = c.Title
-				})
-				.OrderByDescending(e => e.StudentEmail) // Assuming you want to get the latest based on email or another timestamp field
-				.Take(5) // Fetch the latest 5 enrollments
-				.ToListAsync();
-
-			return View(enrollments);
+			return View();
 		}
 
+		// POST: Login Action
+		[HttpPost]
+		public IActionResult Login(string email, string password)
+		{
+			// Hardcoded admin credentials for EducatorHomePage
+			if (email == "admin@gmail.com" && password == "Admin")
+			{
+				HttpContext.Session.SetString("UserEmail", email);
+				return RedirectToAction("HomePage", "Educator");
+			}
 
+			// Check user in the database
+			var user = _context.Users.FirstOrDefault(u => u.Email == email && u.Password == password);
 
-		public IActionResult AddCourses()
+			if (user != null)
+			{
+				HttpContext.Session.SetString("UserEmail", email);
+
+				// Redirect based on role
+				if (user.Role == "Admin")
+				{
+					return RedirectToAction("AdminHomePage");
+				}
+				else
+				{
+
+					return RedirectToAction("StudentHomePage", "Student");
+				}
+			}
+
+			// If no match, display an error message
+			ViewBag.Message = "Invalid Email or Password";
+			return View();
+		}
+
+		// GET: Register Page
+		[HttpGet]
+		public IActionResult Register()
+		{
+			return View();
+		}
+
+		// POST: Registration Action
+		[HttpPost]
+		public IActionResult Register(string username, string email, string password, string confirmPassword)
+		{
+			// Validate passwords
+			if (password != confirmPassword)
+			{
+				ViewBag.Message = "Passwords do not match";
+				return View();
+			}
+
+			// Check if email is already registered
+			if (_context.Users.Any(u => u.Email == email))
+			{
+				ViewBag.Message = "Email is already registered";
+				return View();
+			}
+
+			// Create and save a new user
+			var newUser = new User
+			{
+				Username = username,
+				Email = email,
+				Password = password,
+				Role = "Student" // Default role is Student
+			};
+
+			_context.Users.Add(newUser);
+			_context.SaveChanges();
+
+			return RedirectToAction("Login");
+		}
+
+		// GET: Google Login Redirect
+		[HttpGet]
+		public IActionResult GoogleLogin()
+		{
+			var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
+			return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+		}
+
+		// Callback from Google
+		[HttpGet]
+		public async Task<IActionResult> GoogleResponse()
+		{
+			var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+			if (result?.Principal == null)
+			{
+				return RedirectToAction("Login");
+			}
+
+			var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
+			var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+			var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+			if (email == null)
+			{
+				ViewBag.Message = "Error retrieving your Google account information.";
+				return View("Login");
+			}
+
+			// Check if user exists
+			var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+			if (user == null)
+			{
+				// Register new user (default role as Student)
+				user = new User
+				{
+					Username = name,
+					Email = email,
+					Password = null, // No password needed for Google login
+					Role = "Student"
+				};
+
+				_context.Users.Add(user);
+				_context.SaveChanges();
+			}
+
+			// Set session and redirect to homepage
+			HttpContext.Session.SetString("UserEmail", email);
+
+			if (user.Role == "Admin")
+			{
+				return RedirectToAction("AdminHomePage");
+			}
+			else
+			{
+				return RedirectToAction("StudentHomePage", "Student");
+			}
+		}
+
+		// GET: Admin Home Page
+		public IActionResult AdminHomePage()
+		{
+			return View();
+		}
+
+		[HttpGet]
+		public IActionResult ForgotPassword()
 		{
 			return View();
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> AddCourses(Course course, IFormFile thumbnail, List<IFormFile> lectureVideos, List<string> lectureTitles)
+		public IActionResult ForgotPassword(string email)
 		{
-			if (!ModelState.IsValid)
+			var user = _context.Users.FirstOrDefault(u => u.Email == email);
+			if (user == null)
 			{
-				TempData["Error"] = "Invalid data. Please check your input.";
-				return View(course);
+				ViewBag.Message = "No account found with that email.";
+				return View();
 			}
 
-			if (course.IsFree)
+			// Generate token
+			var token = GenerateToken();
+
+			// Save token
+			var resetToken = new PasswordResetToken
 			{
-				course.Price = 0; // Ensure price is set to 0 for free courses
-			}
-
-			if (thumbnail != null && thumbnail.Length > 0)
-			{
-				string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads/thumbnails");
-				Directory.CreateDirectory(uploadsFolder);
-				string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(thumbnail.FileName);
-				string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-				using var stream = new FileStream(filePath, FileMode.Create);
-				await thumbnail.CopyToAsync(stream);
-
-				course.ThumbnailPath = "/uploads/thumbnails/" + uniqueFileName;
-			}
-
-			_context.Courses.Add(course);
-			await _context.SaveChangesAsync();
-
-			for (int i = 0; i < lectureVideos.Count; i++)
-			{
-				if (lectureVideos[i] != null && lectureVideos[i].Length > 0)
-				{
-					string videoFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads/lectures");
-					Directory.CreateDirectory(videoFolder);
-					string uniqueVideoName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(lectureVideos[i].FileName);
-					string videoPath = Path.Combine(videoFolder, uniqueVideoName);
-
-					using var stream = new FileStream(videoPath, FileMode.Create);
-					await lectureVideos[i].CopyToAsync(stream);
-
-					_context.Lectures.Add(new Lecture
-					{
-						LectureTitle = lectureTitles[i],
-						VideoPath = "/uploads/lectures/" + uniqueVideoName,
-						CourseId = course.CourseId
-					});
-				}
-			}
-
-			await _context.SaveChangesAsync();
-			TempData["Success"] = "Course added successfully!";
-			return RedirectToAction("MyCourses");
-		}
-
-
-		public async Task<IActionResult> MyCourses()
-		{
-			var courses = await _context.Courses.Include(c => c.Lectures).ToListAsync();
-			return View(courses);
-		}
-
-		[HttpPost]
-		public async Task<IActionResult> DeleteCourse(int id)
-		{
-			var course = await _context.Courses.Include(c => c.Lectures).FirstOrDefaultAsync(c => c.CourseId == id);
-			if (course == null)
-			{
-				TempData["Error"] = "Course not found!";
-				return RedirectToAction("MyCourses","Educator");
-			}
-
-			foreach (var lecture in course.Lectures)
-			{
-				if (!string.IsNullOrEmpty(lecture.VideoPath))
-				{
-					string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, lecture.VideoPath.TrimStart('/'));
-					if (System.IO.File.Exists(fullPath))
-					{
-						System.IO.File.Delete(fullPath);
-					}
-				}
-			}
-
-			if (!string.IsNullOrEmpty(course.ThumbnailPath))
-			{
-				string fullPath = Path.Combine(_webHostEnvironment.WebRootPath, course.ThumbnailPath.TrimStart('/'));
-				if (System.IO.File.Exists(fullPath))
-				{
-					System.IO.File.Delete(fullPath);
-				}
-			}
-
-			_context.Lectures.RemoveRange(course.Lectures);
-			_context.Courses.Remove(course);
-			await _context.SaveChangesAsync();
-
-			TempData["Success"] = "Course deleted successfully!";
-			return RedirectToAction("MyCourses","Educator");
-		}
-
-		[HttpPost]
-		public async Task<IActionResult> AddLecture(int CourseId, string LectureTitle, IFormFile lectureVideo)
-		{
-			var course = await _context.Courses.Include(c => c.Lectures).FirstOrDefaultAsync(c => c.CourseId == CourseId);
-			if (course == null)
-			{
-				return Json(new { success = false, message = "Course not found!" });
-			}
-
-			if (lectureVideo == null || lectureVideo.Length == 0)
-			{
-				return Json(new { success = false, message = "Please upload a valid video file." });
-			}
-
-			string videoFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads/lectures");
-			Directory.CreateDirectory(videoFolder);
-			string uniqueVideoName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(lectureVideo.FileName);
-			string videoPath = Path.Combine(videoFolder, uniqueVideoName);
-
-			using var stream = new FileStream(videoPath, FileMode.Create);
-			await lectureVideo.CopyToAsync(stream);
-
-			Lecture lecture = new Lecture
-			{
-				LectureTitle = LectureTitle,
-				VideoPath = "/uploads/lectures/" + uniqueVideoName,
-				CourseId = CourseId
+				Email = email,
+				Token = token,
+				ExpiryDate = DateTime.UtcNow.AddHours(1)  // Token valid for 1 hour
 			};
 
-			_context.Lectures.Add(lecture);
-			await _context.SaveChangesAsync();
+			_context.PasswordResetTokens.Add(resetToken);
+			try
+			{
+				_context.SaveChanges();
+			}
+			catch (DbUpdateException ex)
+			{
+				// Log the error (inner exception usually holds the key detail)
+				Console.WriteLine($"DbUpdateException: {ex.Message}");
 
-			int updatedLectureCount = _context.Lectures.Count(l => l.CourseId == CourseId);
-
-			return Json(new { success = true, lectureCount = updatedLectureCount });
-		}
-		public async Task<IActionResult> StudentEnrolled()
-		{
-			var enrollments = await _context.Enrollments
-				.Join(_context.Courses, e => e.CourseId, c => c.CourseId, (e, c) => new EnrollmentViewModel
+				if (ex.InnerException != null)
 				{
-					StudentEmail = e.StudentEmail,
-					CourseTitle = c.Title
-				})
-				.ToListAsync();
+					Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+				}
 
-			return View(enrollments);
+				throw; // Re-throw to let it bubble up if needed
+			}
+
+
+			// Send email
+			SendResetEmail(email, token);
+
+			ViewBag.Message = "Password reset link has been sent to your email.";
+			return View();
 		}
+
+		[HttpGet]
+		public IActionResult ResetPassword(string token)
+		{
+			var resetToken = _context.PasswordResetTokens.FirstOrDefault(t => t.Token == token && t.ExpiryDate > DateTime.UtcNow);
+
+			if (resetToken == null)
+			{
+				return View("TokenExpired");
+			}
+
+			ViewBag.Email = resetToken.Email;
+			ViewBag.Token = token;
+			return View();
+		}
+
+		[HttpPost]
+		public IActionResult ResetPassword(string token, string newPassword, string confirmPassword)
+		{
+			if (newPassword != confirmPassword)
+			{
+				ViewBag.Message = "Passwords do not match.";
+				ViewBag.Token = token;
+				return View();
+			}
+
+			var resetToken = _context.PasswordResetTokens.FirstOrDefault(t => t.Token == token && t.ExpiryDate > DateTime.UtcNow);
+
+			if (resetToken == null)
+			{
+				return View("TokenExpired");
+			}
+
+			var user = _context.Users.FirstOrDefault(u => u.Email == resetToken.Email);
+			if (user == null)
+			{
+				ViewBag.Message = "User not found.";
+				return View();
+			}
+
+			user.Password = newPassword;
+			_context.PasswordResetTokens.Remove(resetToken);  // Invalidate the token
+			_context.SaveChanges();
+
+			return RedirectToAction("Login");
+		}
+
+		private string GenerateToken()
+		{
+			byte[] tokenBytes = new byte[32]; // 256 bits
+			RandomNumberGenerator.Fill(tokenBytes);
+			return Convert.ToBase64String(tokenBytes)
+				.Replace("+", "")  // Remove URL-unsafe characters
+				.Replace("/", "")
+				.Replace("=", "");  // Remove padding for URL safety
+		}
+
+
+		private void SendResetEmail(string email, string token)
+		{
+			string resetLink = Url.Action("ResetPassword", "Account", new { token }, Request.Scheme);
+
+			var fromAddress = new MailAddress(_configuration["EmailSettings:SenderEmail"], "E-Learning Platform");
+			var toAddress = new MailAddress(email);
+			const string subject = "Password Reset Request";
+			string body = $"Click the link below to reset your password:\n\n{resetLink}\n\nThis link will expire in 1 hour.";
+
+			var smtp = new SmtpClient
+			{
+				Host = _configuration["EmailSettings:SmtpServer"],
+				Port = int.Parse(_configuration["EmailSettings:SmtpPort"]),
+				EnableSsl = bool.Parse(_configuration["EmailSettings:EnableSsl"]),
+				Credentials = new NetworkCredential(
+					_configuration["EmailSettings:SenderEmail"],
+					_configuration["EmailSettings:SenderPassword"]
+				)
+			};
+
+			using (var message = new MailMessage(fromAddress, toAddress)
+			{
+				Subject = subject,
+				Body = body
+			})
+			{
+				smtp.Send(message);
+			}
+		}
+
+		[HttpGet]
+		public IActionResult FacebookLogin()
+		{
+			var properties = new AuthenticationProperties { RedirectUri = Url.Action("FacebookResponse") };
+			return Challenge(properties, FacebookDefaults.AuthenticationScheme);
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> FacebookResponse()
+		{
+			var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+			if (result?.Principal == null)
+			{
+				return RedirectToAction("Login");
+			}
+
+			var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
+			var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+			var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+			if (email == null)
+			{
+				ViewBag.Message = "Error retrieving your Facebook account information.";
+				return View("Login");
+			}
+
+			var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+			if (user == null)
+			{
+				user = new User
+				{
+					Username = name,
+					Email = email,
+					Password = null, // No password for external login
+					Role = "Student"
+				};
+
+				_context.Users.Add(user);
+				_context.SaveChanges();
+			}
+
+			HttpContext.Session.SetString("UserEmail", email);
+
+			if (user.Role == "Admin")
+			{
+				return RedirectToAction("AdminHomePage");
+			}
+			else
+			{
+				return RedirectToAction("StudentHomePage", "Student");
+			}
+		}
+
+
 
 	}
 }
