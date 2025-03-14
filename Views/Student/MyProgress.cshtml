@@ -1,0 +1,142 @@
+﻿@model List<dynamic>
+
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "My Progress";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">📊 My Progress</h2>
+
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table glass-table">
+                <thead>
+                    <tr>
+                        <th>📚 Course</th>
+                        <th>📈 Progress</th>
+                        <th>✅ Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var progress in Model)
+                    {
+                        <tr class="glass-row">
+                            <td><i class="fas fa-book-open me-2"></i>@progress.Course.Title</td>
+                            <td>
+                                <div class="progress progress-custom">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width: @progress.Progress%;" aria-valuenow="@progress.Progress"
+                                         aria-valuemin="0" aria-valuemax="100">
+                                        @progress.Progress%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if (progress.IsCompleted)
+                                {
+                                    <a href="@Url.Action("GetCertificate", "Student", new { courseId = progress.Course.CourseId })"
+                                       class="btn btn-success btn-sm">
+                                        🎓 Download Certificate
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">In Progress</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Glassmorphism CSS -->
+<style>
+    /* Glassmorphism Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Glass Table */
+    .glass-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .glass-table thead {
+            background: rgba(0, 123, 255, 0.9);
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .glass-table th, .glass-table td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        .glass-table tbody tr.glass-row {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 8px;
+        }
+
+            .glass-table tbody tr.glass-row:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            }
+
+        .glass-table tbody tr td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    /* Progress Bar */
+    .progress-custom {
+        height: 20px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background: linear-gradient(135deg, #28a745, #007bff);
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 10px;
+    }
+
+    /* Icons */
+    .fas {
+        color: #007bff;
+    }
+
+    /* Buttons */
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #218838);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .btn-success:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 10px;
+    }
+</style>
