@@ -17,17 +17,23 @@ namespace E_Learning.Controllers
 
 		public async Task<IActionResult> HomePage()
 		{
-			var enrollments = await _context.Enrollments
-				.Join(_context.Courses, e => e.CourseId, c => c.CourseId, (e, c) => new EnrollmentViewModel
-				{
-					StudentEmail = e.StudentEmail,
-					CourseTitle = c.Title
-				})
-				.OrderByDescending(e => e.StudentEmail) // Assuming you want to get the latest based on email or another timestamp field
-				.Take(5) // Fetch the latest 5 enrollments
-				.ToListAsync();
+			var dashboardViewModel = new EducatorDashboardViewModel
+			{
+				TotalEnrollments = await _context.Enrollments.CountAsync(),
+				TotalCourses = await _context.Courses.CountAsync(),
+				RecentEnrollments = await _context.Enrollments
+					.Join(_context.Courses, e => e.CourseId, c => c.CourseId, (e, c) => new Enrollment
+					{
+						StudentEmail = e.StudentEmail,
+						CourseId = e.CourseId,
+						Course = c // Assuming Course has a Title property
+					})
+					.OrderByDescending(e => e.StudentEmail) // Use a timestamp field like EnrollmentDate if available
+					.Take(5) // Fetch the latest 5 enrollments
+					.ToListAsync()
+			};
 
-			return View(enrollments);
+			return View(dashboardViewModel);
 		}
 
 
@@ -107,7 +113,7 @@ namespace E_Learning.Controllers
 			if (course == null)
 			{
 				TempData["Error"] = "Course not found!";
-				return RedirectToAction("MyCourses","Educator");
+				return RedirectToAction("MyCourses", "Educator");
 			}
 
 			foreach (var lecture in course.Lectures)
@@ -136,7 +142,7 @@ namespace E_Learning.Controllers
 			await _context.SaveChangesAsync();
 
 			TempData["Success"] = "Course deleted successfully!";
-			return RedirectToAction("MyCourses","Educator");
+			return RedirectToAction("MyCourses", "Educator");
 		}
 
 		[HttpPost]
@@ -187,6 +193,188 @@ namespace E_Learning.Controllers
 
 			return View(enrollments);
 		}
+		// Show all feedback from all courses
+		public async Task<IActionResult> CourseFeedback()
+		{
+			var feedbacks = await _context.CourseFeedbacks
+				.OrderByDescending(f => f.SubmittedAt)
+				.ToListAsync();
+
+			return View(feedbacks); // This loads CourseFeedback.cshtml
+		}
+
+		//For Quizzes
+
+		// Show page to create quiz
+		public IActionResult AddQuiz()
+		{
+			return View();
+		}
+
+		// POST: Save quiz and questions
+		[HttpPost]
+		public async Task<IActionResult> AddQuiz(Quiz quiz, List<string> QuestionTexts,
+												 List<string> OptionAs, List<string> OptionBs,
+												 List<string> OptionCs, List<string> OptionDs,
+												 List<string> CorrectAnswers)
+		{
+			if (string.IsNullOrEmpty(quiz.Subject) || string.IsNullOrEmpty(quiz.Level) || string.IsNullOrEmpty(quiz.Title))
+			{
+				TempData["Error"] = "Please fill all quiz details.";
+				return View(quiz);
+			}
+
+			if (QuestionTexts == null || QuestionTexts.Count == 0)
+			{
+				TempData["Error"] = "Please add at least one question.";
+				return View(quiz);
+			}
+
+			// Save Quiz
+			_context.Quizzes.Add(quiz);
+			await _context.SaveChangesAsync();
+
+			// Save Questions
+			for (int i = 0; i < QuestionTexts.Count; i++)
+			{
+				if (!string.IsNullOrWhiteSpace(QuestionTexts[i]))
+				{
+					_context.QuizQuestions.Add(new QuizQuestion
+					{
+						QuizId = quiz.QuizId,
+						QuestionText = QuestionTexts[i],
+						OptionA = OptionAs[i],
+						OptionB = OptionBs[i],
+						OptionC = OptionCs[i],
+						OptionD = OptionDs[i],
+						CorrectAnswer = CorrectAnswers[i]
+					});
+				}
+			}
+
+			await _context.SaveChangesAsync();
+
+			TempData["Success"] = "Quiz and questions saved successfully!";
+			return RedirectToAction("QuizManagement");
+		}
+
+		// View all quizzes
+		public async Task<IActionResult> QuizList()
+		{
+			var quizzes = await _context.Quizzes.ToListAsync();
+			return View(quizzes);
+		}
+
+		// View quiz details and questions
+		public async Task<IActionResult> QuizDetails(int id)
+		{
+			var quiz = await _context.Quizzes
+				.Include(q => q.Questions)
+				.FirstOrDefaultAsync(q => q.QuizId == id);
+
+			if (quiz == null)
+			{
+				return NotFound();
+			}
+
+			return View(quiz);
+		}
+
+		// Educator Quiz Management - Show All Quizzes with Edit & Delete
+		public async Task<IActionResult> QuizManagement()
+		{
+			var quizzes = await _context.Quizzes.ToListAsync();
+			return View(quizzes);
+		}
+
+		public async Task<IActionResult> EditQuiz(int id)
+		{
+			var quiz = await _context.Quizzes
+				.Include(q => q.Questions)
+				.FirstOrDefaultAsync(q => q.QuizId == id);
+
+			if (quiz == null)
+			{
+				return NotFound();
+			}
+
+			return View(quiz);
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> EditQuiz(Quiz quiz, List<string> QuestionTexts, List<string> OptionAs,
+												  List<string> OptionBs, List<string> OptionCs,
+												  List<string> OptionDs, List<string> CorrectAnswers)
+		{
+			if (string.IsNullOrEmpty(quiz.Title) || string.IsNullOrEmpty(quiz.Subject) || string.IsNullOrEmpty(quiz.Level))
+			{
+				TempData["Error"] = "Please fill all quiz details.";
+				return View(quiz);
+			}
+
+			var existingQuiz = await _context.Quizzes
+				.Include(q => q.Questions)
+				.FirstOrDefaultAsync(q => q.QuizId == quiz.QuizId);
+
+			if (existingQuiz == null)
+			{
+				return NotFound();
+			}
+
+			existingQuiz.Title = quiz.Title;
+			existingQuiz.Subject = quiz.Subject;
+			existingQuiz.Level = quiz.Level;
+
+			// Clear old questions
+			_context.QuizQuestions.RemoveRange(existingQuiz.Questions);
+			await _context.SaveChangesAsync();
+
+			// Add updated questions
+			for (int i = 0; i < QuestionTexts.Count; i++)
+			{
+				if (!string.IsNullOrWhiteSpace(QuestionTexts[i]))
+				{
+					_context.QuizQuestions.Add(new QuizQuestion
+					{
+						QuizId = quiz.QuizId,
+						QuestionText = QuestionTexts[i],
+						OptionA = OptionAs[i],
+						OptionB = OptionBs[i],
+						OptionC = OptionCs[i],
+						OptionD = OptionDs[i],
+						CorrectAnswer = CorrectAnswers[i]
+					});
+				}
+			}
+
+			await _context.SaveChangesAsync();
+
+			TempData["Success"] = "Quiz updated successfully!";
+			return RedirectToAction("QuizManagement");
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> DeleteQuiz(int id)
+		{
+			var quiz = await _context.Quizzes
+				.Include(q => q.Questions)
+				.FirstOrDefaultAsync(q => q.QuizId == id);
+
+			if (quiz == null)
+			{
+				return NotFound();
+			}
+
+			_context.QuizQuestions.RemoveRange(quiz.Questions);
+			_context.Quizzes.Remove(quiz);
+
+			await _context.SaveChangesAsync();
+
+			TempData["Success"] = "Quiz deleted successfully!";
+			return RedirectToAction("QuizManagement");
+		}
+
+
 
 	}
 }
