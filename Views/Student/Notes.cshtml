@@ -1,0 +1,68 @@
+﻿@model IEnumerable<E_Learning.Models.Note>
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Available Notes</h2>
+    <a class="btn btn-outline-primary" asp-controller="Roadmap" asp-action="Index">📍 View Roadmap</a>
+</div>
+<!-- ✅ Search Box -->
+<div class="mb-3">
+    <input type="text" id="searchInput" class="form-control" placeholder="Search notes by title..." onkeyup="filterNotes()">
+</div>
+
+<table class="table table-bordered" id="notesTable">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var note in Model)
+        {
+            <tr>
+                <td>@note.Title</td>
+                <td>@note.Content</td>
+                <td>@note.CreatedAt.ToShortDateString()</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(note.FilePath))
+                    {
+                        <a asp-action="DownloadFile" asp-controller="Student" asp-route-filePath="@note.FilePath" class="btn btn-primary">
+                            Download
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">No file</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- ✅ JavaScript for Searching -->
+<script>
+    function filterNotes() {
+        var input = document.getElementById("searchInput");
+        var filter = input.value.toLowerCase();
+        var table = document.getElementById("notesTable");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) {
+            var titleCell = rows[i].getElementsByTagName("td")[0]; // ✅ First cell is for title
+            if (titleCell) {
+                var title = titleCell.textContent || titleCell.innerText;
+                if (title.toLowerCase().indexOf(filter) > -1) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
