@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "Quiz Result";
+}
+
+<h2>Quiz Result - @ViewBag.QuizTitle</h2>
+
+<div class="alert alert-info">
+    <p><strong>Score:</strong> @ViewBag.Score / @ViewBag.TotalQuestions</p>
+    <p><strong>Percentage:</strong> @((ViewBag.Score * 100 / ViewBag.TotalQuestions).ToString("F2"))%</p>
+</div>
+
+<a asp-action="Quizzes" class="btn btn-primary">Back to Quizzes</a>
